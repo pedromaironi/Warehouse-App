@@ -1,18 +1,20 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
-import App from "../App";
+import Dashboard from "../pages/Dashboard";
 
 export const AppRouter = () => {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<App />}>
-          <Route path="/" />
-          <Route path="/Dashboard" Component={<Dashboard />}
-          {/* <Route path="*" element={<Error />} /> */}
-        </Route>
+        {/* Default login page */}
+        <Route path="/" element={<LoginPage />} />
 
-        <Route path="login" element={<LoginPage />} />
+        {/* Dashboard page */}
+        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+
+        {/* Catch-all (optional for handling 404s) */}
+        {/* <Route path="*" element={<Error />} /> */}
+        <Route path="/dashboard/*" element={<Dashboard />} />
       </Routes>
     </HashRouter>
   );

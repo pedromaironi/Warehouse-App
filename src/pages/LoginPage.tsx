@@ -1,5 +1,6 @@
 // src/components/Login.tsx
-import React, { FormEvent } from 'react';
+import React, { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Define the props type for the component (if needed)
 interface LoginProps {
@@ -7,6 +8,9 @@ interface LoginProps {
 }
 
 const LoginPage: React.FC<LoginProps> = () => {
+
+  const navigate = useNavigate();
+
   return (
     // Container
     <div>
@@ -15,9 +19,7 @@ const LoginPage: React.FC<LoginProps> = () => {
         <div className="bg-white p-8 rounded-lg shadow-md w-lg max-w">
           {/* Logo */}
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-600">
-              Juanito 7up
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-600">Juanito 7up</h1>
           </div>
 
           {/* Form */}
@@ -105,7 +107,7 @@ const LoginPage: React.FC<LoginProps> = () => {
                   type="checkbox"
                   className="form-checkbox h-4 w-4 text-blue-600"
                 />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                <span className="ml-2 text-sm text-gray-600">Recuerdame</span>
               </label>
             </div>
 
@@ -113,16 +115,15 @@ const LoginPage: React.FC<LoginProps> = () => {
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+              onClick={() => navigate("/dashboard")}
             >
               Sign in
             </button>
           </form>
 
           {/* Register Link */}
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Powered by Pedro M. Toribio
-            </p>
+          <div className="text-center mt-5">
+            <p className="text-sm text-gray-600">Powered by Pedro M. Toribio</p>
           </div>
         </div>
       </div>

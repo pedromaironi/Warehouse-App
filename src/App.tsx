@@ -1,10 +1,10 @@
-import "./App.css";
-import LoginPage from './pages/LoginPage';
+import { AppRouter } from "./router/AppRouter";
 
 const App: React.FC = () => {
-
   return (
-    <LoginPage />
+    <div className="bg-white">
+      <AppRouter />
+    </div>
   );
 };
 
