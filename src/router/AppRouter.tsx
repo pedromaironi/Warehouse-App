@@ -1,6 +1,6 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "../pages/LoginPage";
-import Dashboard from "../pages/Dashboard";
+import LoginPage from "../features/auth/LoginPage";
+import Dashboard from "../features/dashboard/Dashboard";
 
 export const AppRouter = () => {
   return (
