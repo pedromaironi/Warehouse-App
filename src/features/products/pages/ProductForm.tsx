@@ -1,133 +1,209 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { Product } from "../types/product";
+// src/features/products/pages/ProductForm.tsx
+
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useProducts } from "../hooks/useProducts";
+import { ProductFormState, ChangeHandler } from "../types/productForm";
+
+import GeneralInfoSection from "../components/GeneralInfoSection";
+import PriceSection from "../components/PriceSection";
+import PriceListsSection from "../components/PriceListsSection";
+import InventorySection from "../components/InventorySection";
+import CostSection from "../components/CostSection";
+import CustomFieldsSection from "../components/CustomFieldsSection";
+import AccountingSection from "../components/AccountingSection";
+import SidebarActions from "../components/SidebarActions";
+
+const initialFormState: ProductFormState = {
+  type: "Producto",
+  hasVariants: false,
+  name: "",
+  reference: "",
+  referenceType: "",
+  unit: "",
+  category: "",
+  description: "",
+  basePrice: "",
+  tax: "0",
+  totalPrice: "",
+  priceLists: [{ list: "", value: "" }],
+  inventory: [{ warehouse: "Principal", qty: "" }],
+  cost: "",
+  customFields: [],
+  accountSales: "",
+  accountInventory: "",
+  accountCost: "",
+  inventoriable: true,
+  allowNegative: false,
+};
 
 export default function ProductForm() {
-  const { id } = useParams(); // Si existe, es edición
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { setProducts } = useProducts(); // products removed
 
-  const [form, setForm] = useState<Product>({
-    id: id || crypto.randomUUID(),
-    name: "",
-    reference: "",
-    price: 0,
-    description: "",
-    status: "activo",
-  });
+  const [form, setForm] = useState<ProductFormState>(initialFormState);
+  const [showError, setShowError] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  // calculate total whenever basePrice or tax changes
+  useEffect(() => {
+    const base = parseFloat(form.basePrice) || 0;
+    const tax = parseFloat(form.tax) || 0;
+    const total = base + base * (tax / 100);
+    setForm((f) => ({ ...f, totalPrice: total.toFixed(2) }));
+  }, [form.basePrice, form.tax]);
+
+  // properly typed change handler
+  const handleChange: ChangeHandler = (e) => {
+    const target = e.target;
+    const name = target.name;
+
+    // Determine newValue safely
+    let newValue: string | boolean;
+    if (target instanceof HTMLInputElement) {
+      newValue = target.type === "checkbox" ? target.checked : target.value;
+    } else {
+      // <select> or <textarea>
+      newValue = (target as HTMLSelectElement | HTMLTextAreaElement).value;
+    }
+
+    // 3) Handle nested array fields explicitly:
+    if (name.startsWith("priceLists.")) {
+      // name = "priceLists.0.list" or "priceLists.0.value"
+      const [, idxStr, key] = name.split(".");
+      const idx = Number(idxStr);
+      setForm((prev) => {
+        const lists = [...prev.priceLists];
+        lists[idx] = { ...lists[idx], [key]: newValue as string };
+        return { ...prev, priceLists: lists };
+      });
+      return;
+    }
+
+    if (name.startsWith("inventory.")) {
+      // name = "inventory.0.qty"
+      const [, idxStr, key] = name.split(".");
+      const idx = Number(idxStr);
+      setForm((prev) => {
+        const inv = [...prev.inventory];
+        inv[idx] = { ...inv[idx], [key]: newValue as string };
+        return { ...prev, inventory: inv };
+      });
+      return;
+    }
+
+    if (name.startsWith("customFields.")) {
+      // name = "customFields.0.value"
+      const [, idxStr, key] = name.split(".");
+      const idx = Number(idxStr);
+      setForm((prev) => {
+        const cfs = [...prev.customFields];
+        cfs[idx] = { ...cfs[idx], [key]: newValue as string };
+        return { ...prev, customFields: cfs };
+      });
+      return;
+    }
+
+    // 4) Fallback for top-level fields:
+    setForm((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
   };
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí guardarías en base de datos o contexto
-    console.log("Producto guardado:", form);
+
+    // basic validation
+    if (!form.name.trim() || !form.basePrice.trim() || !form.unit.trim()) {
+      setShowError(true);
+      return;
+    }
+
+    const record = {
+      id: id || crypto.randomUUID(),
+      name: form.name,
+      reference: form.reference,
+      price: parseFloat(form.totalPrice),
+      description: form.description,
+      status: "activo" as const,
+    };
+
+    setProducts((prev) =>
+      id ? prev.map((p) => (p.id === id ? record : p)) : [...prev, record]
+    );
+
     navigate("/dashboard/products");
   };
 
+  // extracted save-and-new logic
+  const handleSaveAndNew = () => {
+    // simulate form submission
+    if (!form.name.trim() || !form.basePrice.trim() || !form.unit.trim()) {
+      setShowError(true);
+      return;
+    }
+
+    // add record
+    const record = {
+      id: crypto.randomUUID(),
+      name: form.name,
+      reference: form.reference,
+      price: parseFloat(form.totalPrice),
+      description: form.description,
+      status: "activo" as const,
+    };
+    setProducts((prev) => [...prev, record]);
+
+    // reset form
+    setForm(initialFormState);
+    setShowError(false);
+  };
+
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        {id ? "Editar producto" : "Nuevo producto/servicio"}
-      </h1>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">
+          {id ? "Editar producto/servicio" : "Nuevo producto/servicio"}
+        </h1>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Tipo de producto (solo visual) */}
-        <div className="flex gap-4">
-          {["Producto", "Servicio", "Combo"].map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={`px-4 py-2 border rounded-md ${
-                type === "Producto"
-                  ? "bg-emerald-600 text-white"
-                  : "text-gray-500 hover:bg-gray-100"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-
-        {/* Campos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium">Nombre *</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full border rounded-md p-2"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Referencia</label>
-            <input
-              name="reference"
-              value={form.reference}
-              onChange={handleChange}
-              className="w-full border rounded-md p-2"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Precio *</label>
-            <input
-              name="price"
-              type="number"
-              value={form.price}
-              onChange={handleChange}
-              className="w-full border rounded-md p-2"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Estado</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full border rounded-md p-2"
-            >
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Descripción</label>
-          <input
-            name="description"
-            value={form.description}
+      <form
+        id="product-form"
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      >
+        <div className="lg:col-span-2 space-y-6">
+          <GeneralInfoSection
+            form={form}
+            showError={showError}
             onChange={handleChange}
-            className="w-full border rounded-md p-2"
           />
+          <PriceSection
+            form={form}
+            showError={showError}
+            onChange={handleChange}
+          />
+          <PriceListsSection form={form} onChange={handleChange} />
+          <InventorySection form={form} onChange={handleChange} />
+          <CostSection
+            form={form}
+            showError={showError}
+            onChange={handleChange}
+          />
+          <CustomFieldsSection form={form} onChange={handleChange} />
+          <AccountingSection form={form} onChange={handleChange} />
         </div>
 
-        {/* Botones */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/dashboard/products")}
-            className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-          >
-            {id ? "Guardar cambios" : "Crear producto"}
-          </button>
-        </div>
+        <aside className="space-y-6">
+          <SidebarActions
+            form={form}
+            showError={showError}
+            onChange={handleChange}
+            onCancel={() => navigate("/dashboard/products")}
+            onSaveAndNew={handleSaveAndNew}
+          />
+        </aside>
       </form>
     </div>
   );
