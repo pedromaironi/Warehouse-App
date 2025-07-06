@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Product } from "../types/product";
 import ProductRow from "./ProductRow";
 
@@ -16,10 +17,18 @@ export default function ProductTable({
   isSelected,
   toggleAll,
 }: ProductTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   return (
-    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
+    <div className="rounded-lg overflow-hidden bg-white shadow-md">
       <table className="w-full text-sm text-gray-700">
-        <thead className="bg-gray-50 border-b text-xs text-gray-500 uppercase">
+        <thead className="bg-gray-50 text-xs text-gray-500">
           <tr>
             <th className="px-4 py-3">
               <input
@@ -38,7 +47,7 @@ export default function ProductTable({
           </tr>
         </thead>
         <tbody>
-          {products.map((product) => (
+          {paginatedProducts.map((product) => (
             <ProductRow
               key={product.id}
               product={product}
@@ -50,12 +59,28 @@ export default function ProductTable({
       </table>
 
       {/* Paginación simple */}
-      <div className="flex justify-between items-center px-4 py-3 text-sm border-t text-gray-500">
+      <div className="flex justify-between items-center px-4 py-3 text-sm text-gray-500">
         <span>
-          Mostrando {products.length} de {products.length}
+          Mostrando {paginatedProducts.length} de {products.length}
         </span>
-        <div>
-          Página <strong>1</strong> de <strong>1</strong>
+        <div className="flex items-center gap-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="text-sm px-2 py-1 border rounded disabled:opacity-50"
+          >
+            ← Anterior
+          </button>
+          <span>
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="text-sm px-2 py-1 border rounded disabled:opacity-50"
+          >
+            Siguiente →
+          </button>
         </div>
       </div>
     </div>

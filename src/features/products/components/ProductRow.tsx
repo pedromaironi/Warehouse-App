@@ -17,10 +17,11 @@ export default function ProductRow({
 
   return (
     <tr className="border-b hover:bg-gray-50">
-      <td className="px-4 py-3">
+      <td className="px-4 py-3 flex justify-center">
         <input
           type="checkbox"
           checked={isSelected}
+          className="cursor-pointer"
           onChange={() => toggleSelect(product.id)}
         />
       </td>

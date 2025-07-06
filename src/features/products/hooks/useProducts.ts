@@ -18,11 +18,49 @@ const initialProducts: Product[] = [
     description: "Bebida carbonatada",
     status: "activo",
   },
+  {
+    id: "3",
+    name: "Refresco Pepsi 400 ml - Familiar",
+    reference: "REF-002",
+    price: 144.1,
+    description: "Bebida carbonatada",
+    status: "activo",
+  },
+  {
+    id: "4",
+    name: "Refresco Pepsi 400 ml - Familiar",
+    reference: "REF-002",
+    price: 144.1,
+    description: "Bebida carbonatada",
+    status: "activo",
+  },
+  {
+    id: "5",
+    name: "Refresco Pepsi 400 ml - Familiar",
+    reference: "REF-002",
+    price: 144.1,
+    description: "Bebida carbonatada",
+    status: "activo",
+  },
 ];
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>(initialProducts);
 
-  // Futuras funciones: filter, delete, update, etc.
-  return { products, setProducts };
+  const updateStatus = (ids: string[], status: Product["status"]) => {
+    setProducts((prev) =>
+      prev.map((p) => (ids.includes(p.id) ? { ...p, status } : p))
+    );
+  };
+
+  const deleteProducts = (ids: string[]) => {
+    setProducts((prev) => prev.filter((p) => !ids.includes(p.id)));
+  };
+
+  return {
+    products,
+    setProducts,
+    updateStatus,
+    deleteProducts,
+  };
 };
