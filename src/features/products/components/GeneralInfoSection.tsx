@@ -6,7 +6,7 @@ import {
   ChangeHandler,
   TypeSelectHandler,
   CheckboxChangeHandler,
-} from "../types/productForm";
+} from "../types/productFormTypes";
 
 interface Props {
   form: ProductFormState;

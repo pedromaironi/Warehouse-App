@@ -1,5 +1,5 @@
 import React from "react";
-import { ProductFormState } from "../types/productForm";
+import { ProductFormState } from "../types/productFormTypes";
 import PriceListDropdown from "./PriceListDropdown";
 
 interface Props {

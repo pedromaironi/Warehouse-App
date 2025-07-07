@@ -9,7 +9,8 @@ import {
   TypeSelectHandler,
   CheckboxChangeHandler,
   InventoryItem,
-} from "../types/productForm";
+  ProductImage,
+} from "../types/productFormTypes";
 
 import GeneralInfoSection from "../components/GeneralInfoSection";
 import PriceSection from "../components/PriceSection";
@@ -19,6 +20,7 @@ import CostSection from "../components/CostSection";
 import CustomFieldsSection from "../components/CustomFieldsSection";
 import AccountingSection from "../components/AccountingSection";
 import SidebarActions from "../components/SidebarActions";
+import ProductGallery from "../components/ProductGallery";
 
 const initialFormState: ProductFormState = {
   type: "Producto",
@@ -33,7 +35,7 @@ const initialFormState: ProductFormState = {
   tax: "0",
   totalPrice: "",
   priceLists: [{ list: "", value: "" }],
-  inventory: [{ warehouse: "Principal", qty: "" }],
+  inventory: [],
   cost: "",
   customFields: [],
   accountSales: "",
@@ -41,12 +43,15 @@ const initialFormState: ProductFormState = {
   accountCost: "",
   inventoriable: true,
   allowNegative: false,
+  images: [],
 };
 
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { setProducts } = useProducts(); // products removed
+
+  const [showGallery, setShowGallery] = useState(false);
 
   const [form, setForm] = useState<ProductFormState>(initialFormState);
   const [showError, setShowError] = useState(false);
@@ -123,7 +128,7 @@ export default function ProductForm() {
     }));
   };
 
-  const handleInventoryChange = (newInventory) => {
+  const handleInventoryChange = (newInventory: InventoryItem[]) => {
     setForm((f) => ({ ...f, inventory: newInventory }));
   };
 
@@ -236,6 +241,35 @@ export default function ProductForm() {
     // ...
   };
 
+  // // Handler para agregar imágenes
+  // const handleAddImages = (files: FileList) => {
+  //   const newImgs: ProductImage[] = Array.from(files).map((file) => ({
+  //     id: uuidv4(),
+  //     url: URL.createObjectURL(file),
+  //     file,
+  //     isNew: true,
+  //   }));
+  //   setForm((f) => ({
+  //     ...f,
+  //     images: [...f.images, ...newImgs],
+  //   }));
+  // };
+
+  // const handleRemoveImage = (id: string) => {
+  //   setForm((f) => ({
+  //     ...f,
+  //     images: f.images.filter((img) => img.id !== id),
+  //   }));
+  // };
+  // const [showGallery, setShowGallery] = useState(false);
+
+  const handleSaveGallery = (newImages: ProductImage[]) => {
+    setForm((f) => ({
+      ...f,
+      images: newImages,
+    }));
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -257,7 +291,7 @@ export default function ProductForm() {
             onTypeSelect={handleTypeSelect}
             onVariantsToggle={handleVariantsToggle}
           />
-          
+
           <PriceSection
             form={form}
             showError={showError}
@@ -299,9 +333,18 @@ export default function ProductForm() {
             onChange={handleChange}
             onCancel={() => navigate("/dashboard/products")}
             onSaveAndNew={handleSaveAndNew}
+            onOpenGallery={() => setShowGallery(true)}
           />
         </aside>
       </form>
+      {showGallery && (
+        <ProductGallery
+          images={form.images}
+          onAdd={() => {}}
+          onClose={() => setShowGallery(false)}
+          onSave={handleSaveGallery}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 // src/features/products/components/PriceSection.tsx
 import React, { useEffect } from "react";
-import { ProductFormState, ChangeHandler } from "../types/productForm";
+import { ProductFormState, ChangeHandler } from "../types/productFormTypes";
 
 interface Props {
   form: ProductFormState;

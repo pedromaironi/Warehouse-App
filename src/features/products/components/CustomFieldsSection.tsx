@@ -1,6 +1,6 @@
 // src/features/products/components/CustomFieldsSection.tsx
 
-import { CustomField } from "../types/productForm";
+import { CustomField } from "../types/productFormTypes";
 
 interface CustomFieldsSectionProps {
   fields: CustomField[];

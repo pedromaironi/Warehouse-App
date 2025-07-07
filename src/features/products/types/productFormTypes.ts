@@ -5,13 +5,25 @@ export interface PriceList {
 }
 
 export interface InventoryItem {
-  warehouse: string;
+  id: string;
+  warehouseId: string;
+  warehouseName: string;
   qty: string;
+  minQty?: string;
+  maxQty?: string;
 }
 
 export interface CustomField {
   field: string;
   value: string;
+}
+
+export interface ProductImage {
+  id: string;
+  url: string;
+  file?: File;
+  isNew?: boolean;
+  isFavorite?: boolean; 
 }
 
 export interface ProductFormState {
@@ -35,6 +47,7 @@ export interface ProductFormState {
   accountCost: string;
   inventoriable: boolean;
   allowNegative: boolean;
+  images: ProductImage[];
 }
 
 export type ChangeHandler = (

@@ -1,6 +1,6 @@
 // src/features/products/components/CostSection.tsx
 import React from "react";
-import { ProductFormState, ChangeHandler } from "../types/productForm";
+import { ProductFormState, ChangeHandler } from "../types/productFormTypes";
 
 interface Props {
   form: ProductFormState;
