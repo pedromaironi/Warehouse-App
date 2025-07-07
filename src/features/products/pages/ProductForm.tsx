@@ -3,7 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
-import { ProductFormState, ChangeHandler } from "../types/productForm";
+import {
+  ProductFormState,
+  ChangeHandler,
+  TypeSelectHandler,
+  CheckboxChangeHandler,
+  InventoryItem,
+} from "../types/productForm";
 
 import GeneralInfoSection from "../components/GeneralInfoSection";
 import PriceSection from "../components/PriceSection";
@@ -52,6 +58,12 @@ export default function ProductForm() {
     const total = base + base * (tax / 100);
     setForm((f) => ({ ...f, totalPrice: total.toFixed(2) }));
   }, [form.basePrice, form.tax]);
+
+  const [warehouses, setWarehouses] = useState([
+    { id: "principal", name: "Principal" },
+    { id: "secundario", name: "Secundario" },
+    // more...
+  ]);
 
   // properly typed change handler
   const handleChange: ChangeHandler = (e) => {
@@ -110,7 +122,11 @@ export default function ProductForm() {
       [name]: newValue,
     }));
   };
-  
+
+  const handleInventoryChange = (newInventory) => {
+    setForm((f) => ({ ...f, inventory: newInventory }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -160,6 +176,66 @@ export default function ProductForm() {
     setShowError(false);
   };
 
+  const addCustomField = () =>
+    setForm((f) => ({
+      ...f,
+      customFields: [...f.customFields, { field: "", value: "" }],
+    }));
+
+  const updateCustomField = (idx: number, val: string) =>
+    setForm((f) => {
+      const copy = [...f.customFields];
+      copy[idx].value = val;
+      return { ...f, customFields: copy };
+    });
+
+  const removeCustomField = (idx: number) =>
+    setForm((f) => ({
+      ...f,
+      customFields: f.customFields.filter((_, i) => i !== idx),
+    }));
+
+  const handleTypeSelect: TypeSelectHandler = (t) =>
+    setForm((f) => ({ ...f, type: t }));
+
+  const handleVariantsToggle: CheckboxChangeHandler = (e) =>
+    setForm((f) => ({ ...f, hasVariants: e.target.checked }));
+
+  const handleAddPriceList = () => {
+    setForm((prev) => ({
+      ...prev,
+      priceLists: [...prev.priceLists, { list: "", value: "" }],
+    }));
+  };
+
+  const handleRemovePriceList = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      priceLists: prev.priceLists.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handlePriceListDropdownChange = (index: number, listValue: string) => {
+    setForm((prev) => {
+      const arr = [...prev.priceLists];
+      arr[index] = { ...arr[index], list: listValue };
+      return { ...prev, priceLists: arr };
+    });
+  };
+
+  const handlePriceListValueChange = (index: number, value: string) => {
+    setForm((prev) => {
+      const arr = [...prev.priceLists];
+      arr[index] = { ...arr[index], value };
+      return { ...prev, priceLists: arr };
+    });
+  };
+
+  const handleCreateNewList = () => {
+    // Muestra un modal, o agrega una nueva opción a tu array de listas
+    // ...
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -177,21 +253,42 @@ export default function ProductForm() {
           <GeneralInfoSection
             form={form}
             showError={showError}
-            onChange={handleChange}
+            onFieldChange={handleChange}
+            onTypeSelect={handleTypeSelect}
+            onVariantsToggle={handleVariantsToggle}
           />
+          
           <PriceSection
             form={form}
             showError={showError}
             onChange={handleChange}
           />
-          <PriceListsSection form={form} onChange={handleChange} />
-          <InventorySection form={form} onChange={handleChange} />
+
+          <PriceListsSection
+            form={form}
+            onAdd={handleAddPriceList}
+            onRemove={handleRemovePriceList}
+            onAddNewList={handleCreateNewList}
+            onListChange={handlePriceListDropdownChange}
+            onValueChange={handlePriceListValueChange}
+          />
+
+          <InventorySection
+            inventory={form.inventory}
+            warehouses={warehouses}
+            onInventoryChange={handleInventoryChange}
+          />
           <CostSection
             form={form}
             showError={showError}
             onChange={handleChange}
           />
-          <CustomFieldsSection form={form} onChange={handleChange} />
+          <CustomFieldsSection
+            fields={form.customFields}
+            onFieldAdd={addCustomField}
+            onFieldChange={updateCustomField}
+            onFieldRemove={removeCustomField}
+          />
           <AccountingSection form={form} onChange={handleChange} />
         </div>
 

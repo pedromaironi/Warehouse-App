@@ -1,26 +1,41 @@
 // src/features/products/components/GeneralInfoSection.tsx
+
 import React from "react";
-import { ProductFormState, ChangeHandler } from "../types/productForm";
+import {
+  ProductFormState,
+  ChangeHandler,
+  TypeSelectHandler,
+  CheckboxChangeHandler,
+} from "../types/productForm";
 
 interface Props {
   form: ProductFormState;
   showError: boolean;
-  onChange: ChangeHandler;
+  onFieldChange: ChangeHandler; // for inputs/selects/textareas
+  onTypeSelect: TypeSelectHandler; // for the Producto/Servicio/Combo buttons
+  onVariantsToggle: CheckboxChangeHandler; // for the checkbox
 }
 
-const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
+const GeneralInfoSection: React.FC<Props> = ({
+  form,
+  showError,
+  onFieldChange,
+  onTypeSelect,
+  onVariantsToggle,
+}) => (
   <section className="bg-white border rounded-lg shadow-sm">
-    <header className="px-4 py-2 border-b font-medium">Información general</header>
+    <header className="px-4 py-2 border-b font-medium">
+      Información general
+    </header>
     <div className="p-4 space-y-4">
       {/* Type tabs + variants */}
       <div className="flex items-center space-x-2">
+        {/* MouseEvent‐safe */}
         {(["Producto", "Servicio", "Combo"] as const).map((t) => (
           <button
             key={t}
             type="button"
-            name="type"
-            value={t}
-            onClick={onChange}
+            onClick={() => onTypeSelect(t)}
             className={`px-4 py-2 border rounded-md text-sm cursor-pointer ${
               form.type === t
                 ? "bg-emerald-50 border-emerald-600 text-emerald-600"
@@ -30,12 +45,14 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
             {t}
           </button>
         ))}
+
         <label className="inline-flex items-center ml-6">
+          {/* ChangeEvent‐safe */}
           <input
             type="checkbox"
             name="hasVariants"
             checked={form.hasVariants}
-            onChange={onChange}
+            onChange={onVariantsToggle}
             className="form-checkbox h-4 w-4 text-emerald-600"
           />
           <span className="ml-2 text-sm text-gray-700">
@@ -43,6 +60,7 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
           </span>
         </label>
       </div>
+
       <p className="text-xs text-gray-500">
         <span className="text-emerald-600">ℹ</span> Una vez creado, no podrás
         cambiar el tipo ni su condición variable.
@@ -51,13 +69,14 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
       {/* Name & Reference */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
+          {/* ChangeEvent‐safe */}
           <label className="block text-sm font-medium">
             Nombre <span className="text-red-500">*</span>
           </label>
           <input
             name="name"
             value={form.name}
-            onChange={onChange}
+            onChange={onFieldChange}
             className={`mt-1 w-full border px-3 py-2 rounded-md text-sm ${
               showError && !form.name ? "border-red-500" : "border-gray-300"
             }`}
@@ -65,10 +84,11 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
         </div>
         <div>
           <label className="block text-sm font-medium">Referencia</label>
+          {/* ChangeEvent‐safe */}
           <input
             name="reference"
             value={form.reference}
-            onChange={onChange}
+            onChange={onFieldChange}
             className="mt-1 w-full border px-3 py-2 rounded-md text-sm border-gray-300"
           />
         </div>
@@ -81,10 +101,11 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
             Unidad de medida <span className="text-red-500">*</span>{" "}
             <span className="text-gray-400">ℹ</span>
           </label>
+          {/* ChangeEvent‐safe */}
           <select
             name="unit"
             value={form.unit}
-            onChange={onChange}
+            onChange={onFieldChange}
             className={`mt-1 w-full border px-3 py-2 rounded-md text-sm ${
               showError && !form.unit ? "border-red-500" : "border-gray-300"
             }`}
@@ -97,10 +118,11 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
           <label className="block text-sm font-medium">
             Categoría <span className="text-gray-400">ℹ</span>
           </label>
+          {/* ChangeEvent‐safe */}
           <select
             name="category"
             value={form.category}
-            onChange={onChange}
+            onChange={onFieldChange}
             className="mt-1 w-full border px-3 py-2 rounded-md text-sm border-gray-300"
           >
             <option value="">Seleccionar...</option>
@@ -111,10 +133,11 @@ const GeneralInfoSection: React.FC<Props> = ({ form, showError, onChange }) => (
       {/* Description */}
       <div>
         <label className="block text-sm font-medium">Descripción</label>
+        {/* ChangeEvent‐safe */}
         <textarea
           name="description"
           value={form.description}
-          onChange={onChange}
+          onChange={onFieldChange}
           className="mt-1 w-full border px-3 py-2 rounded-md text-sm border-gray-300"
           rows={4}
         />

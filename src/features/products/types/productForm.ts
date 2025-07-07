@@ -42,3 +42,8 @@ export type ChangeHandler = (
     HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
   >
 ) => void;
+export type TypeSelectHandler = (
+  type: "Producto" | "Servicio" | "Combo"
+) => void;
+
+export type CheckboxChangeHandler = React.ChangeEventHandler<HTMLInputElement>;
