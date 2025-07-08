@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Product } from "../../products/types/product";
 import CartSidebar, { CartItem } from "../components/CartSidebar";
 import POSHeader from "../components/POSHeader";
@@ -7,14 +7,31 @@ import ProductSearchBar from "../components/ProductSearchBar";
 import { MOCK_PRODUCTS } from "../data/mockProducts";
 import { nanoid } from "nanoid"; // Or use crypto.randomUUID() if you prefer
 import SalesTabsBar from "../components/SalesTabBar";
+import CheckoutMethodModal from "../components/CheckoutMethodModal";
+import CheckoutPayModal from "../components/CheckoutPayModal";
+import CheckoutSuccessModal from "../components/CheckoutSucessModal";
 
 // -- POSPage: Main Point Of Sale component, supports multi-invoice (multi-cart/tab) workflow --
 export default function POSPage() {
   // Loader state for product grid (simulated for demo purposes)
   const [loading, setLoading] = useState(true);
+
+  // States for the tabs
   const [renameTabId, setRenameTabId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState<string>("");
   const [deleteTabId, setDeleteTabId] = useState<string | null>(null);
+
+  // CHECKOUT FLOW
+  const [checkoutStep, setCheckoutStep] = useState<
+    null | "method" | "pay" | "success"
+  >(null);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<any>({});
+
+  // live search term
+  const [search, setSearch] = useState("");
+  //Shortcuts
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   /**
    * List of all open invoices/sales.
@@ -32,12 +49,54 @@ export default function POSPage() {
 
   // Returns the sale currently being viewed/edited.
   const activeSale = sales.find((s) => s.id === activeSaleId);
+  const total = (activeSale?.cart ?? []).reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   // Simulate async product loading (replace with real fetch in production)
   useEffect(() => {
     const timeout = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timeout);
   }, []);
+
+  // Handles "checkout": clears only the active cart, but you could implement a sale-saving workflow here
+  const handleCheckout = useCallback(() => {
+    setSales((prevSales) =>
+      prevSales.map((sale) =>
+        sale.id === activeSaleId ? { ...sale, cart: [] } : sale
+      )
+    );
+  }, [activeSaleId]);
+
+  const handleStartCheckout = () => setCheckoutStep("method");
+  const handleSelectMethod = (method: string) => {
+    setSelectedMethod(method);
+    setCheckoutStep("pay");
+  };
+  const handlePay = (info: any) => {
+    setPaymentInfo(info);
+    setCheckoutStep("success");
+  };
+  const handleFinishSale = () => {
+    handleCheckout();
+    setCheckoutStep(null);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === "F8") {
+        e.preventDefault();
+        handleCheckout(); // Already in your scope
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleCheckout]);
 
   // Adds a product to the cart of the active invoice
   const handleProductClick = (product: Product) => {
@@ -88,15 +147,6 @@ export default function POSPage() {
     setDeleteTabId(id); // Solo abre el modal de confirmación
   };
 
-  // Handles "checkout": clears only the active cart, but you could implement a sale-saving workflow here
-  const handleCheckout = () => {
-    setSales((prev) =>
-      prev.map((sale) =>
-        sale.id === activeSaleId ? { ...sale, cart: [] } : sale
-      )
-    );
-  };
-
   // Handles "cancel": just clears the active cart
   const handleCancel = () => {
     setSales((prev) =>
@@ -127,7 +177,11 @@ export default function POSPage() {
       {/* Main layout: product grid (left), cart sidebar (right) */}
       <div className="flex-1 flex overflow-hidden pb-12">
         <main className="flex-1 flex flex-col px-6 pb-6 pt-4 overflow-auto bg-[#f7fafd]">
-          <ProductSearchBar />
+          <ProductSearchBar
+            ref={searchInputRef}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           {loading ? (
             <div className="flex flex-1 flex-col items-center justify-center h-full">
               <span className="mb-3 text-gray-500">
@@ -138,7 +192,12 @@ export default function POSPage() {
             </div>
           ) : (
             <ProductGrid
-              products={MOCK_PRODUCTS}
+              products={MOCK_PRODUCTS.filter(
+                (p) =>
+                  p.name.toLowerCase().includes(search.toLowerCase()) ||
+                  p.reference?.toLowerCase().includes(search.toLowerCase()) ||
+                  p.id === search
+              )}
               onProductClick={handleProductClick}
             />
           )}
@@ -147,9 +206,36 @@ export default function POSPage() {
           items={activeSale?.cart || []}
           onRemove={handleRemove}
           onQtyChange={handleQtyChange}
-          onCheckout={handleCheckout}
+          onCheckout={() => setCheckoutStep("method")}
           onCancel={handleCancel}
         />
+        {checkoutStep === "method" && (
+          <CheckoutMethodModal
+            total={total}
+            onSelect={handleSelectMethod}
+            onCancel={() => setCheckoutStep(null)}
+          />
+        )}
+        {checkoutStep === "pay" && (
+          <CheckoutPayModal
+            total={total}
+            method={selectedMethod}
+            onPay={handlePay}
+            onBack={() => setCheckoutStep("method")}
+            onCancel={() => setCheckoutStep(null)}
+          />
+        )}
+        {checkoutStep === "success" && (
+          <CheckoutSuccessModal
+            total={total}
+            paymentInfo={paymentInfo}
+            onPrint={() => {
+              /* Tu lógica para imprimir */
+            }}
+            onNewSale={handleFinishSale}
+            onClose={() => setCheckoutStep(null)}
+          />
+        )}
         {renameTabId && (
           <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
             <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
@@ -349,6 +435,8 @@ export default function POSPage() {
 function addToCartHelper(cart: CartItem[], product: Product): CartItem[] {
   const exists = cart.find((item) => item.id === product.id);
   if (exists) {
+    // Don't increase quantity if already at stock
+    if (exists.quantity >= exists.stock) return cart;
     return cart.map((item) =>
       item.id === product.id
         ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }

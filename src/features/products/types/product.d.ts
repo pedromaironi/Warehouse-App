@@ -8,5 +8,5 @@ export interface Product {
   isFavorite: boolean;
   stock: number;
   reference?: string;
-  status?: "active" | "inactive";
+  status?: string;
 }
