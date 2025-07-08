@@ -35,7 +35,7 @@ export default function CartSidebar({
   onRemove,
   onQtyChange,
   onCheckout,
-  onCancel
+  onCancel,
 }: Props) {
   const [priceList, setPriceList] = useState(priceLists[0]);
   const [numeration, setNumeration] = useState(numerations[1]);
@@ -50,15 +50,14 @@ export default function CartSidebar({
   const total = subtotal + itbis;
 
   return (
-    <aside className="w-[420px] bg-white flex flex-col h-min-ful shadow-2xl rounded-l-2xl border-r overflow-hidden">
+    <aside className="w-[420px] bg-white flex flex-col h-min-ful shadow-2xl  overflow-hidden">
       {/* HEADER */}
-      <div className="px-6 pt-6 pb-1 border-b">
-        <h2 className="font-bold text-lg">Factura de venta</h2>
+      <div className="px-6 pt-4 pb-4 flex justify-center items-center h-auto">
+        <h2 className="font-bold text-lg h-fit">Factura de venta</h2>
       </div>
 
       {/* DROPDOWNS */}
-      <div className="flex gap-3 px-6 py-3 border-b bg-white/80">
-        {/* ...igual que antes... */}
+      <div className="flex gap-3 px-6 py-3 bg-white/80">
         <div className="flex-1">
           <label className="text-xs text-gray-500 mb-1 block">
             Lista de precio
@@ -92,7 +91,7 @@ export default function CartSidebar({
       </div>
 
       {/* CLIENT */}
-      <div className="flex items-end gap-3 px-6 pt-3 pb-2 border-b">
+      <div className="flex items-end gap-3 px-6 pt-3 pb-2 ">
         <div className="flex-1">
           <label className="text-xs text-gray-500 mb-1 block">Cliente</label>
           <select
