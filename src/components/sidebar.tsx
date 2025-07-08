@@ -27,7 +27,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: <IoHomeOutline /> },
-    { name: "Facturación", path: "/dashboard/invoices", icon: <FaFileAlt /> },
+    { name: "POS", path: "/dashboard/pos", icon: <FaFileAlt /> },
     {
       name: "Productos",
       path: "/dashboard/products",

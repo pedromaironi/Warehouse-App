@@ -1,22 +1,24 @@
-import React, { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import React from "react";
+import { useLocation } from "react-router-dom";
 
 interface Props {
   children: React.ReactNode;
 }
 
 const DashboardLayout: React.FC<Props> = ({ children }) => {
-  // local state for sidebar open/close
-  const [isOpen, setIsOpen] = useState(true);
-  const toggleSidebar = () => setIsOpen((prev) => !prev);
+  const location = useLocation();
+  const isPOS = location.pathname.startsWith("/dashboard/pos");
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* pass both props down */}
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
-
-      {/* main content */}
-      <main className="flex-1 overflow-auto bg-white p-4 sm:p-6 lg:p-8">
+    <div className="flex min-h-screen bg-gray-100">
+      <main
+        className={
+          isPOS
+            ? "flex-1 overflow-auto p-0 w-full" // POS: no padding, full width
+            : "flex-1 overflow-auto mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-6"
+            // Non-POS: centered, boxed, padding
+        }
+      >
         {children}
       </main>
     </div>

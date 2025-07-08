@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { useProducts } from "../hooks/useProducts";
 import ProductTable from "../components/ProductTable";
 import ProductActions from "../components/ProductActions";
@@ -8,7 +8,7 @@ import QuickProductModal from "../components/QuickProductModal";
 
 export default function Products() {
   const { products, updateStatus, deleteProducts } = useProducts();
-  const navigate = useNavigate();
+
   const [selected, setSelected] = useState<string[]>([]);
   const [showQuickModal, setShowQuickModal] = useState(false);
 
@@ -91,11 +91,11 @@ export default function Products() {
           selected={selected}
           clearSelection={() => setSelected([])}
           onActivate={() => {
-            updateStatus(selected, "activo");
+            updateStatus(selected, "active");
             setSelected([]);
           }}
           onDeactivate={() => {
-            updateStatus(selected, "inactivo");
+            updateStatus(selected, "inactive");
             setSelected([]);
           }}
           onDelete={() => {

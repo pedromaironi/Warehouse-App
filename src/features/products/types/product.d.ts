@@ -1,8 +1,12 @@
 export interface Product {
   id: string;
   name: string;
-  reference: string;
+  description: string;
   price: number;
-  description?: string;
-  status: "activo" | "inactivo";
+  reference: string;
+  image: string[];
+  isFavorite: boolean;
+  stock: number;
+  reference?: string;
+  status?: "active" | "inactive";
 }

@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import Invoices from "../pages/Invoices";
 import Home from "../features/dashboard/Home";
 import ProductsRoutes from "../features/products/routes/product.routes";
+import POSPage from "../features/pos/pages/POSPage";
 
 export const DashboardRouter = () => {
   return (
@@ -10,9 +10,8 @@ export const DashboardRouter = () => {
       <Route path="/" element={<Home />} />
 
       {/* Invoices page */}
-      <Route path="invoices" element={<Invoices />} />
+      <Route path="pos" element={<POSPage />} />
 
-      <Route path="products" element={<ProductsRoutes />} />
       <Route path="products/*" element={<ProductsRoutes />} />
       {/* <Route path="projects/inventory-value" element={<Inventory />} />
       <Route path="projects/inventory-adjustments" element={<InventoryAdjustments />} />

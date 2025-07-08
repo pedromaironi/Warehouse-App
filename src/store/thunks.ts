@@ -1,6 +1,6 @@
 // src/store/features/products/thunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { ProductFormState } from "../../../features/products/types/productFormTypes";
+import { ProductFormState } from "../features/products/types/productFormTypes";
 
 // fetchProducts
 export const fetchProducts = createAsyncThunk(

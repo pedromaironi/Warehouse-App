@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { DashboardRouter } from "../../router/DashboardRouter";
+import DashboardLayout from "../../layouts/DashboardLayouts";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -24,9 +25,9 @@ export default function Dashboard() {
         `}
       >
         {/* Boxed container: centers and constrains width, adds padding */}
-        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-6">
+        <DashboardLayout>
           <DashboardRouter />
-        </div>
+        </DashboardLayout>
       </main>
     </div>
   );
