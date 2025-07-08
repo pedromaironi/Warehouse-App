@@ -35,8 +35,14 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       subItems: [
         { name: "Productos y servicios", path: "/dashboard/products" },
         { name: "Inventario", path: "/dashboard/projects/inventory-value" },
-        { name: "Ajustes de inventario", path: "/dashboard/projects/inventory-adjustments" },
-        { name: "Gestión de artículos", path: "/dashboard/projects/item-management" },
+        {
+          name: "Ajustes de inventario",
+          path: "/dashboard/projects/inventory-adjustments",
+        },
+        {
+          name: "Gestión de artículos",
+          path: "/dashboard/projects/item-management",
+        },
         { name: "Lista de precios", path: "/dashboard/projects/price-lists" },
         { name: "Almacenes", path: "/dashboard/projects/warehouses" },
         { name: "Categorías", path: "/dashboard/projects/categories" },
@@ -50,12 +56,12 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
 
   return (
     <aside
-      className={`h-screen bg-white border-r text-gray-800 transition-all duration-300 fixed top-0 left-0 z-40 ${
+      className={`h-screen bg-white text-gray-800 transition-all duration-300 fixed top-0 left-0 z-40 ${
         isOpen ? "w-64" : "w-20"
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 ">
         {isOpen ? (
           <>
             <div className="flex items-center space-x-3 overflow-hidden">
@@ -64,19 +70,24 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 alt="Logo"
                 className="w-8 h-8 rounded-2xl"
               />
-              <span className="text-lg font-semibold whitespace-nowrap">Inkflow</span>
+              <span className="text-lg font-semibold whitespace-nowrap">
+                Inkflow
+              </span>
             </div>
             <button onClick={toggleSidebar}>
               <FaBars className="h-5 w-5 text-gray-600" />
             </button>
           </>
         ) : (
-          <button onClick={toggleSidebar} className="w-full flex justify-center">
+          <button
+            onClick={toggleSidebar}
+            className="w-full flex justify-center"
+          >
             <FaBars className="h-5 w-5 text-gray-600" />
           </button>
         )}
       </div>
-
+        <div className="border-b border-gray-400 ml-6 mr-6"></div>
       {/* Navigation */}
       <div className="p-4">
         <ul>
@@ -131,7 +142,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
         </ul>
 
         {/* User Info */}
-        <div className="p-4 border-t text-sm text-gray-500 flex items-center justify-center md:justify-start gap-2">
+        <div className="p-4 border-t border-gray-400 text-sm text-gray-500 flex items-center justify-center md:justify-start gap-2">
           <FaUsers className="text-gray-400" />
           {isOpen && <span>Pedro M. Toribio</span>}
         </div>

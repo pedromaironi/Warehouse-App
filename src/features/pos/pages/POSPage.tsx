@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks/hooks";
 import {
   addToCart,
+  clearCart,
   removeFromCart,
   updateQty,
-  clearCart,
 } from "../../../store/features/pos/pos.slice";
 import { Product } from "../../products/types/product";
 import CartSidebar from "../components/CartSidebar";
@@ -15,6 +16,13 @@ import { MOCK_PRODUCTS } from "../data/mockProducts";
 export default function POSPage() {
   const dispatch = useAppDispatch();
   const cart = useAppSelector((state) => state.pos.cart);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simula carga (quita en producción)
+    const timeout = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const handleProductClick = (product: Product) => {
     if (product.stock > 0) {
@@ -22,10 +30,12 @@ export default function POSPage() {
         addToCart({
           id: product.id,
           name: product.name,
+          reference: product.reference,
           price: product.price,
           image: product.image,
           stock: product.stock,
           isFavorite: product.isFavorite,
+          description: product.description,
         })
       );
     }
@@ -37,16 +47,26 @@ export default function POSPage() {
       <div className="flex-1 flex overflow-hidden">
         <main className="flex-1 flex flex-col px-6 pb-6 pt-4 overflow-auto">
           <ProductSearchBar />
-          <ProductGrid
-            products={MOCK_PRODUCTS}
-            onProductClick={handleProductClick}
-          />
+          {loading ? (
+            <div className="flex flex-1 flex-col items-center justify-center h-full">
+              <span className="mb-3 text-gray-500">
+                Cargando tus productos, danos un tiempo más
+              </span>
+              <span className="animate-spin rounded-full border-4 border-emerald-300 border-t-transparent h-12 w-12 block" />
+            </div>
+          ) : (
+            <ProductGrid
+              products={MOCK_PRODUCTS}
+              onProductClick={handleProductClick}
+            />
+          )}
         </main>
         <CartSidebar
           items={cart}
           onRemove={(id) => dispatch(removeFromCart(id))}
           onQtyChange={(id, qty) => dispatch(updateQty({ id, qty }))}
           onCheckout={() => dispatch(clearCart())}
+          onCancel={() => dispatch(clearCart())}
         />
       </div>
     </div>

@@ -1,4 +1,19 @@
-interface CartItem {
+import { useState } from "react";
+import EditProductModal from "./EditProductModal";
+import { FiEdit2 } from "react-icons/fi";
+import { RiDeleteBinLine } from "react-icons/ri";
+const priceLists = [
+  "General",
+  "Sin embase",
+  "Con embase",
+  "Con embase y Botellas",
+  "Con botellas y sin embase",
+  "Nana Provisiones",
+];
+const numerations = ["Consumo (01)", "Consumo (02)", "Consumo (03)"];
+const customers = ["Consumidor final", "Cliente frecuente", "Empresa XYZ"];
+
+export interface CartItem {
   id: string;
   name: string;
   price: number;
@@ -12,83 +27,223 @@ interface Props {
   onRemove: (productId: string) => void;
   onQtyChange: (productId: string, qty: number) => void;
   onCheckout: () => void;
+  onCancel: () => void;
 }
-export default function CartSidebar({ items, onRemove, onQtyChange, onCheckout }: Props) {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+export default function CartSidebar({
+  items,
+  onRemove,
+  onQtyChange,
+  onCheckout,
+  onCancel
+}: Props) {
+  const [priceList, setPriceList] = useState(priceLists[0]);
+  const [numeration, setNumeration] = useState(numerations[1]);
+  const [customer, setCustomer] = useState(customers[0]);
+  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
+
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const itbis = subtotal * 0.18;
+  const total = subtotal + itbis;
+
   return (
-    <aside className="w-[410px] bg-white p-6 flex flex-col min-h-full shadow-lg">
-      <h2 className="font-bold text-lg mb-6">Factura de venta</h2>
-      {/* ...use your cart logic from previous code... */}
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+    <aside className="w-[420px] bg-white flex flex-col h-min-ful shadow-2xl rounded-l-2xl border-r overflow-hidden">
+      {/* HEADER */}
+      <div className="px-6 pt-6 pb-1 border-b">
+        <h2 className="font-bold text-lg">Factura de venta</h2>
+      </div>
+
+      {/* DROPDOWNS */}
+      <div className="flex gap-3 px-6 py-3 border-b bg-white/80">
+        {/* ...igual que antes... */}
+        <div className="flex-1">
+          <label className="text-xs text-gray-500 mb-1 block">
+            Lista de precio
+          </label>
+          <select
+            value={priceList}
+            onChange={(e) => setPriceList(e.target.value)}
+            className="w-full h-9 border rounded px-2 bg-white focus:outline-emerald-600"
+          >
+            {priceLists.map((item) => (
+              <option value={item} key={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="text-xs text-gray-500 mb-1 block">Numeración</label>
+          <select
+            value={numeration}
+            onChange={(e) => setNumeration(e.target.value)}
+            className="w-full h-9 border rounded px-2 bg-white focus:outline-emerald-600"
+          >
+            {numerations.map((item) => (
+              <option value={item} key={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* CLIENT */}
+      <div className="flex items-end gap-3 px-6 pt-3 pb-2 border-b">
+        <div className="flex-1">
+          <label className="text-xs text-gray-500 mb-1 block">Cliente</label>
+          <select
+            value={customer}
+            onChange={(e) => setCustomer(e.target.value)}
+            className="w-full h-9 border rounded px-2 bg-white focus:outline-emerald-600"
+          >
+            {customers.map((item) => (
+              <option value={item} key={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="button"
+          className="h-9 px-3 rounded border cursor-pointer text-emerald-600 hover:bg-emerald-50 font-medium text-sm flex items-center"
+        >
+          <span className="text-lg mr-1">+</span> Nuevo
+        </button>
+      </div>
+
+      {/* LIST PRODUCTS */}
+      <div className="flex-1 overflow-auto px-6 py-2">
         {items.length === 0 ? (
-          <>
-            <span className="text-5xl mb-2">🛒</span>
-            <div className="text-center">Aquí verás los productos que elijas<br /> en tu próxima venta</div>
-          </>
+          <div className="text-center text-gray-400 py-8 text-sm">
+            <span className="text-4xl block mb-2">🛒</span>
+            Aquí verás los productos que elijas
+            <br /> en tu próxima venta
+          </div>
         ) : (
-          <ul className="divide-y w-full">
+          <ul className="divide-y">
             {items.map((item) => (
-              <li key={item.id} className="py-3 flex justify-between items-center gap-2">
-                <div className="flex flex-col flex-1">
-                  <span className="font-semibold">{item.name}</span>
+              <li key={item.id} className="flex items-center gap-2 py-3">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-800 truncate">
+                    {item.name}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    RD${item.price.toLocaleString()}
+                  </div>
                   <div className="flex items-center gap-1 mt-1">
                     <button
-                      onClick={() => onQtyChange(item.id, Math.max(item.quantity - 1, 1))}
+                      onClick={() =>
+                        onQtyChange(item.id, Math.max(item.quantity - 1, 1))
+                      }
                       disabled={item.quantity <= 1}
-                      className="px-2 rounded bg-gray-200"
-                    >-</button>
-                    <input
-                      className="w-8 text-center border rounded"
-                      type="number"
-                      min={1}
-                      max={item.stock ?? 99}
-                      value={item.quantity}
-                      onChange={e =>
+                      className="
+                        w-8 h-8 flex items-center justify-center 
+                        text-emerald-600 text-lg font-bold
+                        rounded-full shadow 
+                        border border-gray-200
+                        bg-white
+                        transition
+                        hover:bg-emerald-50 hover:border-emerald-400
+                        disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed
+                        active:scale-95
+                        cursor-pointer
+                    "
+                    >
+                      -
+                    </button>
+                    <span className="mx-2">{item.quantity}</span>
+                    <button
+                      onClick={() =>
                         onQtyChange(
                           item.id,
-                          Math.max(1, Math.min(Number(e.target.value), item.stock ?? 99))
+                          Math.min(item.quantity + 1, item.stock)
                         )
                       }
-                    />
-                    <button
-                      onClick={() => onQtyChange(item.id, Math.min(item.quantity + 1, item.stock ?? 99))}
-                      disabled={item.stock !== undefined && item.quantity >= item.stock}
-                      className="px-2 rounded bg-gray-200"
-                    >+</button>
-                    <span className="ml-2 text-xs text-gray-400">
-                      {item.stock !== undefined
-                        ? `Stock: ${item.stock - item.quantity}`
-                        : ""}
-                    </span>
+                      disabled={item.quantity >= item.stock}
+                      className={`
+    w-8 h-8 flex items-center justify-center
+    cursor-pointer 
+    text-emerald-600 text-lg font-bold
+    rounded-full shadow 
+    border border-gray-200
+    bg-white
+    transition
+    hover:bg-emerald-50 hover:border-emerald-400
+    disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed
+    active:scale-95
+  `}
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
-                <span className="font-semibold whitespace-nowrap">
+                <span className="font-semibold ml-2 whitespace-nowrap">
                   RD${(item.price * item.quantity).toLocaleString()}
                 </span>
+                {/* ÍCONOS: Editar y Eliminar */}
                 <button
-                  className="ml-2 text-red-500 hover:underline text-xs"
-                  onClick={() => onRemove(item.id)}
-                  title="Remove"
+                  className="ml-2 p-1 text-gray-500 hover:text-emerald-700"
+                  title="Editar"
+                  onClick={() => setEditingItem(item)}
                 >
-                  ×
+                  <FiEdit2 className="cursor-pointer" />
+                </button>
+                <button
+                  className="ml-1 p-1 text-gray-500 hover:text-red-700"
+                  title="Eliminar"
+                  onClick={() => onRemove(item.id)}
+                >
+                  <RiDeleteBinLine className="cursor-pointer" />
                 </button>
               </li>
             ))}
           </ul>
         )}
       </div>
-      <div className="mt-6 flex flex-col gap-2">
-        <div className="flex justify-between text-lg font-semibold">
-          <span>Total</span>
-          <span>RD${total.toLocaleString()}</span>
+
+      {/* MODAL */}
+      {editingItem && (
+        <EditProductModal
+          open={!!editingItem}
+          onClose={() => setEditingItem(null)}
+          item={editingItem}
+          onSave={(updatedItem) => {
+            onQtyChange(updatedItem.id, updatedItem.quantity);
+            setEditingItem(null);
+          }}
+        />
+      )}
+
+      {/* FOOTER */}
+      <div className="border-t px-6 py-4 bg-white">
+        <div className="flex justify-between text-sm">
+          <span>Subtotal</span>
+          <span>RD${subtotal.toFixed(1)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-gray-500 mb-2">
+          <span>ITBIS (18.00%)</span>
+          <span>RD${itbis.toFixed(1)}</span>
         </div>
         <button
+          className="w-full bg-emerald-600 text-white rounded cursor-pointer h-10 text-lg font-semibold shadow mt-2 hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-400"
           disabled={items.length === 0}
-          className="bg-emerald-600 text-white rounded py-2 mt-2 hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-400"
           onClick={onCheckout}
         >
-          Sell / Checkout
+          Vender RD${total.toFixed(1)}
         </button>
+        <div className="flex justify-between items-center mt-3 text-xs ">
+          <span className="text-gray-500">{items.length} Productos</span>
+          <button
+            className="text-emerald-700 hover:underline px-2 py-1 rounded cursor-pointer"
+            onClick={onCancel}
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </aside>
   );

@@ -2,9 +2,7 @@
 
 export default function POSHeader() {
   return (
-    <header className="flex items-center px-6 py-2 bg-white shadow-xs">
-      {/* Hamburger/Menu */}
-
+    <header className="flex items-center p-4 bg-white shadow-xs">
       <span className="font-bold text-xl">Facturar</span>
       <div className="flex-1" />
       {/* profile, icons... */}
