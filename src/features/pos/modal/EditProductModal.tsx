@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CartItem } from "./CartSidebar";
+import { CartItem } from "../components/CartSidebar";
 
 // ...definiciones anteriores (CartItem, Props, etc.)
 

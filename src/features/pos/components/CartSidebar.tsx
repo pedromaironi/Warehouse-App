@@ -1,5 +1,5 @@
 import { useState } from "react";
-import EditProductModal from "./EditProductModal";
+import EditProductModal from "../modal/EditProductModal";
 import { FiEdit2 } from "react-icons/fi";
 import { RiDeleteBinLine } from "react-icons/ri";
 const priceLists = [
@@ -50,12 +50,12 @@ export default function CartSidebar({
   const total = subtotal + itbis;
 
   return (
-    <aside className="w-[420px] bg-white flex flex-col h-min-ful shadow-2xl  overflow-hidden">
+    <aside className="h-[calc(100vh-64px)] w-[350px] min-w-[320px] bg-white flex flex-col p-4">
+      {" "}
       {/* HEADER */}
       <div className="px-6 pt-4 pb-4 flex justify-center items-center h-auto">
         <h2 className="font-bold text-lg h-fit">Factura de venta</h2>
       </div>
-
       {/* DROPDOWNS */}
       <div className="flex gap-3 px-6 py-3 bg-white/80">
         <div className="flex-1">
@@ -89,7 +89,6 @@ export default function CartSidebar({
           </select>
         </div>
       </div>
-
       {/* CLIENT */}
       <div className="flex items-end gap-3 px-6 pt-3 pb-2 ">
         <div className="flex-1">
@@ -113,9 +112,8 @@ export default function CartSidebar({
           <span className="text-lg mr-1">+</span> Nuevo
         </button>
       </div>
-
       {/* LIST PRODUCTS */}
-      <div className="flex-1 overflow-auto px-6 py-2">
+      <div className="flex-1 overflow-y-auto px-6 py-2">
         {items.length === 0 ? (
           <div className="text-center text-gray-400 py-8 text-sm">
             <span className="text-4xl block mb-2">🛒</span>
@@ -203,7 +201,6 @@ export default function CartSidebar({
           </ul>
         )}
       </div>
-
       {/* MODAL */}
       {editingItem && (
         <EditProductModal
@@ -216,7 +213,6 @@ export default function CartSidebar({
           }}
         />
       )}
-
       {/* FOOTER */}
       <div className="border-t px-6 py-4 bg-white">
         <div className="flex justify-between text-sm">

@@ -10,7 +10,7 @@ const DashboardLayout: React.FC<Props> = ({ children }) => {
   const isPOS = location.pathname.startsWith("/dashboard/pos");
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 h-full">
       <main
         className={
           isPOS
