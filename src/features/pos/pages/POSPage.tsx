@@ -12,8 +12,12 @@ import SalesTabsBar from "../components/SalesTabBar";
 import CheckoutMethodModal from "../modal/CheckoutMethodModal";
 import CheckoutPayModal from "../modal/CheckoutPayModal";
 import CheckoutSuccessModal from "../modal/CheckoutSucessModal";
-import PrintTicketModal from "../modal/PrintTicketModal";
 import { InvoicePrintData } from "../types/invoicePrint";
+import TicketPreviewModal from "../modal/TicketPreviewModal";
+import { usePrintTicket } from "../hooks/usePrintTicket";
+import { generatePrintTicket } from "../utils/printUtils";
+import { addToCartHelper } from "../utils/cartUtils";
+import { PaymentInfo } from "../types/checkout";
 
 /**
  * POSPage - Main POS screen with multi-invoice/tab support.
@@ -36,11 +40,17 @@ export default function POSPage() {
     null | "method" | "pay" | "success"
   >(null);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
-  const [paymentInfo, setPaymentInfo] = useState<any>({});
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({
+    method: "",
+    amount: 0,
+    seller: "",
+    note: "",
+  });
 
   // PRINT
   const [printModalOpen, setPrintModalOpen] = useState(false);
   const [ticketData, setTicketData] = useState<InvoicePrintData | null>(null);
+  const printTicket = usePrintTicket();
 
   // Live search term and search input ref (for F2 shortcut)
   const [search, setSearch] = useState("");
@@ -92,14 +102,6 @@ export default function POSPage() {
     )
     .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite));
 
-  /**
-   * Returns a new array where favorites are listed before non-favorites.
-   */
-  const sortedProducts = [
-    ...products.filter((p) => p.isFavorite),
-    ...products.filter((p) => !p.isFavorite),
-  ];
-
   // Simulate async product loading (replace with real fetch in production)
   useEffect(() => {
     const timeout = setTimeout(() => setLoading(false), 1200);
@@ -120,7 +122,9 @@ export default function POSPage() {
   }, [activeSaleId]);
 
   // Handle starting the checkout flow (show method modal)
-  const handleStartCheckout = () => setCheckoutStep("method");
+  const handleStartCheckout = useCallback(() => {
+    setCheckoutStep("method");
+  }, []);
 
   // Handle payment method selection in modal
   const handleSelectMethod = (method: string) => {
@@ -129,7 +133,7 @@ export default function POSPage() {
   };
 
   // Handle entering payment info and confirming payment
-  const handlePay = (info: any) => {
+  const handlePay = (info: PaymentInfo) => {
     setPaymentInfo(info);
     setCheckoutStep("success");
   };
@@ -316,10 +320,14 @@ export default function POSPage() {
         )}
         {/* --- Print Modal --- */}
         {printModalOpen && ticketData && (
-          <PrintTicketModal
+          <TicketPreviewModal
             data={ticketData}
             open={printModalOpen}
             onClose={() => setPrintModalOpen(false)}
+            onPrint={() => {
+              printTicket(ticketData);
+              setPrintModalOpen(false); // Cierra la vista previa al imprimir
+            }}
           />
         )}
         {/* --- Rename/Remove Sale Modals --- */}
@@ -444,88 +452,4 @@ export default function POSPage() {
       </div>
     </div>
   );
-}
-
-/**
- * addToCartHelper
- * Adds a product to the cart, or increases quantity if it already exists.
- * - If the product already exists, it increases the quantity (max = stock).
- * - If it's new, it adds it with quantity = 1.
- */
-function addToCartHelper(cart: CartItem[], product: Product): CartItem[] {
-  const exists = cart.find((item) => item.id === product.id);
-  if (exists) {
-    // Don't increase quantity if already at stock
-    if (exists.quantity >= exists.stock) return cart;
-    return cart.map((item) =>
-      item.id === product.id
-        ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
-        : item
-    );
-  }
-  return [
-    ...cart,
-    {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: 1,
-      stock: product.stock,
-      isFavorite: product.isFavorite,
-    },
-  ];
-}
-
-/**
- * generatePrintTicket
- * Prepares printable invoice data using the current cart and mock info.
- * Replace mock data with real API response in production.
- *
- * @param cart - Current sale cart (CartItem[])
- * @param paymentMethod - Selected payment method (string)
- * @param paymentInfo - Additional payment info (object)
- * @returns InvoicePrintData - data to render PrintTicketModal
- */
-function generatePrintTicket(
-  cart: CartItem[],
-  paymentMethod: string,
-  paymentInfo: any
-): InvoicePrintData {
-  // Calculate subtotal and itbis (18%)
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const itbis = subtotal * 0.18;
-  const total = subtotal + itbis;
-
-  return {
-    business: {
-      name: "Almacenes Juan",
-      phone: "809-783-9321",
-      address: "Av. Principal #123, Santiago",
-      rnc: "123456789",
-    },
-    invoiceNumber: "B01-0000001",
-    ncf: "B0100000001",
-    date: new Date().toLocaleString(),
-    paymentType: paymentMethod || "Efectivo",
-    branch: "Principal",
-    dueDate: "", // Empty for now
-    customer: "Consumidor final",
-    products: cart.map((item) => ({
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-      total: item.price * item.quantity,
-    })),
-    subtotal,
-    itbis,
-    total,
-    received: total, // By default, assume paid exact amount
-    change: 0, // Assume no change (edit as needed)
-    footerNote: "Developed by Pedro Toribio",
-    ...paymentInfo, // Pass any additional payment data if needed
-  };
 }

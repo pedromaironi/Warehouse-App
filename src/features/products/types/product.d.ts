@@ -10,3 +10,12 @@ export interface Product {
   reference?: string;
   status?: string;
 }
+
+export interface ProductSale {
+  id: string;
+  name: string;
+  price: number;
+  qty: number;
+  sku: string;
+  subtotal: number;
+}

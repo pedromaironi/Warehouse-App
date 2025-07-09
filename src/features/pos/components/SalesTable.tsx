@@ -1,4 +1,6 @@
 // src/features/pos/components/SalesTable.tsx
+import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Sale } from "../types/sales";
 import { FiMoreVertical } from "react-icons/fi";
 
@@ -6,6 +8,9 @@ interface Props {
   sales: Sale[];
 }
 export default function SalesTable({ sales }: Props) {
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="bg-white shadow rounded-xl overflow-auto">
       <table className="w-full min-w-[1000px] text-sm">
@@ -29,7 +34,10 @@ export default function SalesTable({ sales }: Props) {
             </tr>
           )}
           {sales.map((sale) => (
-            <tr key={sale.id} className="border-t hover:bg-emerald-50 transition">
+            <tr
+              key={sale.id}
+              className="border-t hover:bg-emerald-50 transition"
+            >
               <td className="px-4 py-3 font-medium">{sale.invoiceNumber}</td>
               <td className="px-4 py-3">{sale.customer}</td>
               <td className="px-4 py-3">
@@ -52,10 +60,33 @@ export default function SalesTable({ sales }: Props) {
                   ● {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
                 </span>
               </td>
-              <td className="px-4 py-3 text-right">
-                <button className="text-gray-500 cursor-pointer hover:text-emerald-700 transition p-2 rounded-full">
+              <td className="px-4 py-3 text-right relative">
+                <button
+                  className="text-gray-500 cursor-pointer hover:text-emerald-700 transition p-2 rounded-full"
+                  onClick={() =>
+                    setOpenMenu(openMenu === sale.id ? null : sale.id)
+                  }
+                >
                   <FiMoreVertical size={20} />
                 </button>
+                {openMenu === sale.id && (
+                  <div
+                    ref={menuRef}
+                    className="absolute right-0 mt-2 w-40 bg-white shadow-xl rounded-lg z-20 hover:bg-emerald-50"
+                  >
+                    <ul>
+                      <li>
+                        <Link
+                          to={`/pos/history/${sale.id}`}
+                          className="block px-4 py-2 text-sm w-fit text-emerald-700 font-medium"
+                        >
+                          Mostrar detalles
+                        </Link>
+                      </li>
+                      {/* Agrega más acciones aquí si lo necesitas */}
+                    </ul>
+                  </div>
+                )}
               </td>
             </tr>
           ))}

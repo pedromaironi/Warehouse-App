@@ -3,6 +3,7 @@ import Home from "../features/dashboard/Home";
 import ProductsRoutes from "../features/products/routes/product.routes";
 import POSPage from "../features/pos/pages/POSPage";
 import SalesHistoryPage from "../features/pos/pages/SalesHistoryPage";
+import SaleDetailPage from "../features/pos/pages/SalesDetailPage";
 
 export const DashboardRouter = () => {
   return (
@@ -13,6 +14,7 @@ export const DashboardRouter = () => {
       {/* Invoices page */}
       <Route path="pos" element={<POSPage />} />
       <Route path="pos/history" element={<SalesHistoryPage />} />
+      <Route path="pos/history/:invoiceId" element={<SaleDetailPage />} />
 
       <Route path="products/*" element={<ProductsRoutes />} />
       {/* <Route path="projects/inventory-value" element={<Inventory />} />
