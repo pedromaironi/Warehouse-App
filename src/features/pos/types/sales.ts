@@ -2,6 +2,7 @@ import { ProductSale } from "../../products/types/product";
 
 export interface Sale {
   id: string;
+  ncf: string;
   invoiceNumber: string;
   customer: string;
   total: number;

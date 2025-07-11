@@ -1,13 +1,9 @@
-// src/features/pos/pages/POSPage.tsx
-
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Product } from "../../products/types/product";
-import CartSidebar, { CartItem } from "../components/CartSidebar";
+import CartSidebar from "../components/CartSidebar";
 import POSHeader from "../components/POSHeader";
 import ProductGrid from "../components/ProductGrid";
 import ProductSearchBar from "../components/ProductSearchBar";
 import { MOCK_PRODUCTS } from "../data/mockProducts";
-import { nanoid } from "nanoid";
 import SalesTabsBar from "../components/SalesTabBar";
 import CheckoutMethodModal from "../modal/CheckoutMethodModal";
 import CheckoutPayModal from "../modal/CheckoutPayModal";
@@ -15,27 +11,38 @@ import CheckoutSuccessModal from "../modal/CheckoutSucessModal";
 import { InvoicePrintData } from "../types/invoicePrint";
 import TicketPreviewModal from "../modal/TicketPreviewModal";
 import { usePrintTicket } from "../hooks/usePrintTicket";
+import { usePOSCart } from "../hooks/usePOSCart";
 import { generatePrintTicket } from "../utils/printUtils";
-import { addToCartHelper } from "../utils/cartUtils";
 import { PaymentInfo } from "../types/checkout";
+import { useFavoriteProducts } from "../hooks/useFavoriteProducts";
 
-/**
- * POSPage - Main POS screen with multi-invoice/tab support.
- * Handles all the logic for sales, product search, cart management, checkout, and printing.
- */
 export default function POSPage() {
-  // Loader state for product grid (simulated for demo purposes)
+  // CART & TAB LOGIC (100% from hook)
+  const {
+    sales,
+    activeSale,
+    activeSaleId,
+    renameTabId,
+    renameValue,
+    deleteTabId,
+    setRenameValue,
+    setRenameTabId,
+    setDeleteTabId,
+    handleTabClick,
+    handleAddTab,
+    handleRenameTab,
+    saveRenameTab,
+    handleDeleteTab,
+    confirmDeleteTab,
+    handleProductClick,
+    handleRemove,
+    handleQtyChange,
+    handleCancel,
+    handleCheckout,
+  } = usePOSCart(MOCK_PRODUCTS);
+
+  // UI state
   const [loading, setLoading] = useState(true);
-
-  // Store the product list in component state
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
-
-  // States for the tabs (rename, delete)
-  const [renameTabId, setRenameTabId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState<string>("");
-  const [deleteTabId, setDeleteTabId] = useState<string | null>(null);
-
-  // CHECKOUT FLOW
   const [checkoutStep, setCheckoutStep] = useState<
     null | "method" | "pay" | "success"
   >(null);
@@ -46,119 +53,31 @@ export default function POSPage() {
     seller: "",
     note: "",
   });
-
-  // PRINT
   const [printModalOpen, setPrintModalOpen] = useState(false);
   const [ticketData, setTicketData] = useState<InvoicePrintData | null>(null);
   const printTicket = usePrintTicket();
-
-  // Live search term and search input ref (for F2 shortcut)
   const [search, setSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { toggleFavorite, getFilteredSorted } =
+    useFavoriteProducts(MOCK_PRODUCTS);
+    
+  // Products
+  const filteredAndSortedProducts = getFilteredSorted(search);
 
-  /**
-   * List of all open invoices/sales.
-   * Each sale contains a unique id, display name, and its own cart (array of CartItem).
-   */
-  const [sales, setSales] = useState<
-    { id: string; name: string; cart: CartItem[] }[]
-  >([{ id: "main", name: "Principal", cart: [] }]);
-
-  /**
-   * Tracks which invoice/tab is currently active.
-   * Only the active sale's cart is displayed in the CartSidebar.
-   */
-  const [activeSaleId, setActiveSaleId] = useState("main");
-
-  // Returns the sale currently being viewed/edited.
-  const activeSale = sales.find((s) => s.id === activeSaleId);
-
-  // Total amount for the current sale
+  // Total calculation
   const total = (activeSale?.cart ?? []).reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  /**
-   * Toggles the 'isFavorite' flag for a product by its id.
-   * @param id - Product id to toggle favorite status.
-   */
-  const handleToggleFavorite = (id: string) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p))
-    );
-  };
-
-  /**
-   * Sorts products so favorites appear first.
-   * Products with isFavorite === true are shown before others.
-   */
-  const filteredAndSortedProducts = products
-    .filter(
-      (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.reference?.toLowerCase().includes(search.toLowerCase()) ||
-        p.id === search
-    )
-    .sort((a, b) => Number(b.isFavorite) - Number(a.isFavorite));
-
-  // Simulate async product loading (replace with real fetch in production)
+  // Async loading
   useEffect(() => {
     const timeout = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timeout);
   }, []);
 
-  /**
-   * handleCheckout
-   * Clears the cart for the active tab after finishing the sale.
-   * Wrapped in useCallback for correct effect dependencies.
-   */
-  const handleCheckout = useCallback(() => {
-    setSales((prevSales) =>
-      prevSales.map((sale) =>
-        sale.id === activeSaleId ? { ...sale, cart: [] } : sale
-      )
-    );
-  }, [activeSaleId]);
-
-  // Handle starting the checkout flow (show method modal)
-  const handleStartCheckout = useCallback(() => {
-    setCheckoutStep("method");
-  }, []);
-
-  // Handle payment method selection in modal
-  const handleSelectMethod = (method: string) => {
-    setSelectedMethod(method);
-    setCheckoutStep("pay");
-  };
-
-  // Handle entering payment info and confirming payment
-  const handlePay = (info: PaymentInfo) => {
-    setPaymentInfo(info);
-    setCheckoutStep("success");
-  };
-
-  /**
-   * handleFinishSale
-   * Finishes the sale: clears the cart and closes modals.
-   * Prepares ticket data for printing.
-   * Uses the current cart state (so that printing always reflects latest cart).
-   */
-  const handleFinishSale = () => {
-    if (!activeSale) return;
-    // Generate the ticket data for printing using current cart
-    const ticket = generatePrintTicket(
-      activeSale.cart,
-      selectedMethod,
-      paymentInfo
-    );
-    setTicketData(ticket);
-    setPrintModalOpen(true);
-    handleCheckout();
-    setCheckoutStep(null);
-  };
-
-  // Shortcuts: F2 = focus search, F8 = checkout
+  // Shortcuts: F2 (search), F8 (checkout)
+  const handleStartCheckout = useCallback(() => setCheckoutStep("method"), []);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "F2") {
@@ -174,79 +93,27 @@ export default function POSPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleStartCheckout]);
 
-  // Adds a product to the cart of the active invoice
-  const handleProductClick = (product: Product) => {
-    setSales((prev) =>
-      prev.map((sale) =>
-        sale.id === activeSaleId
-          ? { ...sale, cart: addToCartHelper(sale.cart, product) }
-          : sale
-      )
+  // Payment/checkout handlers
+  const handleSelectMethod = (method: string) => {
+    setSelectedMethod(method);
+    setCheckoutStep("pay");
+  };
+  const handlePay = (info: PaymentInfo) => {
+    setPaymentInfo(info);
+    setCheckoutStep("success");
+  };
+  const handleFinishSale = () => {
+    if (!activeSale) return;
+    const ticket = generatePrintTicket(
+      activeSale.cart,
+      selectedMethod,
+      paymentInfo
     );
+    setTicketData(ticket);
+    setPrintModalOpen(true);
+    handleCheckout();
+    setCheckoutStep(null);
   };
-
-  // Removes a product from the active invoice's cart by id
-  const handleRemove = (id: string) => {
-    setSales((prev) =>
-      prev.map((sale) =>
-        sale.id === activeSaleId
-          ? { ...sale, cart: sale.cart.filter((item) => item.id !== id) }
-          : sale
-      )
-    );
-  };
-
-  // Changes the quantity of a product in the active cart
-  const handleQtyChange = (id: string, qty: number) => {
-    setSales((prev) =>
-      prev.map((sale) =>
-        sale.id === activeSaleId
-          ? {
-              ...sale,
-              cart: sale.cart.map((item) =>
-                item.id === id ? { ...item, quantity: qty } : item
-              ),
-            }
-          : sale
-      )
-    );
-  };
-
-  // Modal actions for renaming and deleting sales tabs
-  const handleRenameTab = (id: string) => {
-    const tab = sales.find((t) => t.id === id);
-    setRenameTabId(id);
-    setRenameValue(tab?.name || "");
-  };
-
-  // For delete: ensure at least 1 tab remains, and switch tab if deleting active
-  const handleDeleteTab = (id: string) => {
-    setDeleteTabId(id);
-  };
-
-  // Handles "cancel": just clears the active cart
-  const handleCancel = () => {
-    setSales((prev) =>
-      prev.map((sale) =>
-        sale.id === activeSaleId ? { ...sale, cart: [] } : sale
-      )
-    );
-  };
-
-  // Activates another tab/invoice by its id
-  const handleTabClick = (id: string) => setActiveSaleId(id);
-
-  // Creates a new invoice/tab with an empty cart and sets it as active
-  const handleAddTab = () => {
-    const newId = nanoid();
-    setSales((prev) => [
-      ...prev,
-      { id: newId, name: `Venta ${prev.length + 1}`, cart: [] },
-    ]);
-    setActiveSaleId(newId);
-  };
-
-  // Print ticket handler, uses ticketData and opens PrintTicketModal
   const handlePrint = () => {
     if (!activeSale) return;
     const ticket = generatePrintTicket(
@@ -262,7 +129,6 @@ export default function POSPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <POSHeader />
-      {/* Main layout: product grid (left), cart sidebar (right) */}
       <div className="flex-1 flex overflow-hidden pb-12">
         <main className="flex-1 flex flex-col px-6 pb-6 pt-4 overflow-auto bg-gray-100">
           <ProductSearchBar
@@ -281,7 +147,7 @@ export default function POSPage() {
             <ProductGrid
               products={filteredAndSortedProducts}
               onProductClick={handleProductClick}
-              onToggleFavorite={handleToggleFavorite}
+              onToggleFavorite={toggleFavorite}
             />
           )}
         </main>
@@ -326,7 +192,7 @@ export default function POSPage() {
             onClose={() => setPrintModalOpen(false)}
             onPrint={() => {
               printTicket(ticketData);
-              setPrintModalOpen(false); // Cierra la vista previa al imprimir
+              setPrintModalOpen(false);
             }}
           />
         )}
@@ -352,7 +218,6 @@ export default function POSPage() {
                 onChange={(e) => setRenameValue(e.target.value)}
                 placeholder="Nombre de la venta"
               />
-              {/* Error messages */}
               {!renameValue.trim() && (
                 <div className="text-xs text-red-500 mb-2">
                   El nombre es obligatorio.
@@ -374,16 +239,7 @@ export default function POSPage() {
                   Cancelar
                 </button>
                 <button
-                  onClick={() => {
-                    setSales((prev) =>
-                      prev.map((tab) =>
-                        tab.id === renameTabId
-                          ? { ...tab, name: renameValue.trim() }
-                          : tab
-                      )
-                    );
-                    setRenameTabId(null);
-                  }}
+                  onClick={saveRenameTab}
                   className="px-4 py-2 rounded bg-emerald-600 cursor-pointer text-white font-medium hover:bg-emerald-700"
                   disabled={
                     !renameValue.trim() ||
@@ -417,18 +273,7 @@ export default function POSPage() {
                   Cancelar
                 </button>
                 <button
-                  onClick={() => {
-                    setSales((prev) => {
-                      const filtered = prev.filter(
-                        (tab) => tab.id !== deleteTabId
-                      );
-                      if (filtered.length === 0) return prev;
-                      if (activeSaleId === deleteTabId)
-                        setActiveSaleId(filtered[0].id);
-                      return filtered;
-                    });
-                    setDeleteTabId(null);
-                  }}
+                  onClick={confirmDeleteTab}
                   className="px-4 py-2 rounded bg-red-600 cursor-pointer text-white font-medium hover:bg-red-700"
                 >
                   Eliminar

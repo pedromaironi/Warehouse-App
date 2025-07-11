@@ -1,6 +1,6 @@
 // src/store/features/products/productSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ProductFormState } from "../../../features/products/types/productFormTypes";
+import { ProductFormState } from "../types/productFormTypes";
 
 interface ProductsState {
   list: ProductFormState[];

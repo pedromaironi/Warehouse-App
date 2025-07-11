@@ -1,31 +1,26 @@
-// src/features/pos/hooks/usePOSCart.ts
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Product } from "../../products/types/product";
-import { CartItem } from "../components/CartSidebar";
 import { nanoid } from "nanoid";
-
-export interface SaleTab {
-  id: string;
-  name: string;
-  cart: CartItem[];
-}
+import { CartItem } from "../components/CartSidebar";
+import { addToCartHelper } from "../utils/cartUtils";
 
 export function usePOSCart(initialProducts: Product[]) {
-  // Sales tabs state
-  const [sales, setSales] = useState<SaleTab[]>([
+  // Tabs/carts
+  const [sales, setSales] = useState<{ id: string; name: string; cart: CartItem[] }[]>([
     { id: "main", name: "Principal", cart: [] },
   ]);
   const [activeSaleId, setActiveSaleId] = useState("main");
+
+  // Rename/delete modals
   const [renameTabId, setRenameTabId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState<string>("");
   const [deleteTabId, setDeleteTabId] = useState<string | null>(null);
 
-  // Get the active tab and cart
+  // Active sale
   const activeSale = sales.find((s) => s.id === activeSaleId);
 
-  // Tab functions
+  // Tab logic
   const handleTabClick = (id: string) => setActiveSaleId(id);
-
   const handleAddTab = () => {
     const newId = nanoid();
     setSales((prev) => [
@@ -34,13 +29,11 @@ export function usePOSCart(initialProducts: Product[]) {
     ]);
     setActiveSaleId(newId);
   };
-
   const handleRenameTab = (id: string) => {
     const tab = sales.find((t) => t.id === id);
     setRenameTabId(id);
     setRenameValue(tab?.name || "");
   };
-
   const saveRenameTab = () => {
     setSales((prev) =>
       prev.map((tab) =>
@@ -49,9 +42,7 @@ export function usePOSCart(initialProducts: Product[]) {
     );
     setRenameTabId(null);
   };
-
   const handleDeleteTab = (id: string) => setDeleteTabId(id);
-
   const confirmDeleteTab = () => {
     setSales((prev) => {
       const filtered = prev.filter((tab) => tab.id !== deleteTabId);
@@ -62,7 +53,7 @@ export function usePOSCart(initialProducts: Product[]) {
     setDeleteTabId(null);
   };
 
-  // Cart functions
+  // Cart actions
   const handleProductClick = (product: Product) => {
     setSales((prev) =>
       prev.map((sale) =>
@@ -72,7 +63,6 @@ export function usePOSCart(initialProducts: Product[]) {
       )
     );
   };
-
   const handleRemove = (id: string) => {
     setSales((prev) =>
       prev.map((sale) =>
@@ -82,7 +72,6 @@ export function usePOSCart(initialProducts: Product[]) {
       )
     );
   };
-
   const handleQtyChange = (id: string, qty: number) => {
     setSales((prev) =>
       prev.map((sale) =>
@@ -97,7 +86,6 @@ export function usePOSCart(initialProducts: Product[]) {
       )
     );
   };
-
   const handleCancel = () => {
     setSales((prev) =>
       prev.map((sale) =>
@@ -105,59 +93,30 @@ export function usePOSCart(initialProducts: Product[]) {
       )
     );
   };
-
-  const handleCheckout = useCallback(() => {
+  const handleCheckout = () => {
     setSales((prevSales) =>
       prevSales.map((sale) =>
         sale.id === activeSaleId ? { ...sale, cart: [] } : sale
       )
     );
-  }, [activeSaleId]);
-
-  function addToCartHelper(cart: CartItem[], product: Product): CartItem[] {
-    const exists = cart.find((item) => item.id === product.id);
-    if (exists) {
-      if (exists.quantity >= exists.stock) return cart;
-      return cart.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
-          : item
-      );
-    }
-    return [
-      ...cart,
-      {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity: 1,
-        stock: product.stock,
-        isFavorite: product.isFavorite,
-      },
-    ];
-  }
+  };
 
   return {
     sales,
-    setSales,
-    activeSaleId,
-    setActiveSaleId,
     activeSale,
+    activeSaleId,
     renameTabId,
-    setRenameTabId,
     renameValue,
-    setRenameValue,
     deleteTabId,
+    setRenameValue,
+    setRenameTabId,
     setDeleteTabId,
-
     handleTabClick,
     handleAddTab,
     handleRenameTab,
     saveRenameTab,
     handleDeleteTab,
     confirmDeleteTab,
-
     handleProductClick,
     handleRemove,
     handleQtyChange,

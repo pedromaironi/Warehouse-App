@@ -6,12 +6,12 @@ import SalesTable from "../components/SalesTable";
 import SalesFilter from "../components/SalesHistoryFilter";
 
 export default function SalesHistoryPage() {
-  // Filtros globales
+  // Global filters
   const [filters, setFilters] = useState({ status: ["pagada"], date: "" });
   const [showFilter, setShowFilter] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Aplicar filtros y búsqueda
+  // Apply filters & search
   const filtered = MOCK_SALES.filter((sale) => {
     // Status filter
     const statusMatch =
@@ -27,16 +27,16 @@ export default function SalesHistoryPage() {
   });
 
   return (
-    <div className="p-6 relative">
+    <div className="max-w-6xl mx-auto relative pt-6">
       <div className="flex items-center gap-4 mb-4">
-        <h2 className="text-2xl font-bold">Facturas</h2>
+        <h2 className="text-3xl font-bold mb-1">Facturas</h2>
         <button
           className="bg-white shadow-xs flex items-center gap-2 border cursor-pointer px-3 py-1 rounded hover:bg-gray-100 relative"
           onClick={() => setShowFilter((s) => !s)}
         >
           <FiFilter />
           Filtrar
-          {/* Indicador de filtros activos */}
+          {/* active filters */}
           {(filters.status.length > 0 || filters.date) && (
             <span className="ml-1 bg-emerald-700 text-white text-xs px-2 py-0.5 rounded-full">
               {filters.status.length + (filters.date ? 1 : 0)}
