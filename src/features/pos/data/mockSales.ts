@@ -5,11 +5,11 @@ import { Sale } from "../types/sales";
 // Agrega productos, subtotales, etc.
 export const MOCK_SALES: Sale[] = [
   {
-    id: "222",
+    id: "A",
     ncf: "xxx",
     invoiceNumber: "B0100000002",
     customer: "Consumidor final",
-    total: 100,
+    total: 420,
     date: "2025-07-08T23:42:00",
     paymentType: "Efectivo",
     status: "pagada",
@@ -43,10 +43,10 @@ export const MOCK_SALES: Sale[] = [
     },
   },
   {
-    id: "2223",
+    id: "B",
     invoiceNumber: "B0100000001",
     customer: "Pedro",
-    total: 250.25,
+    total: 872.25,
     ncf: "xxx",
     date: "2025-07-08T13:25:00",
     paymentType: "Tarjeta",

@@ -2,7 +2,7 @@ import { Shift } from "../types/shift";
 
 export const MOCK_SHIFTS: Shift[] = [
   {
-    id: "shift-1",
+    id: "1",
     status: "closed",
     openedAt: "2025-07-10T08:00:00",
     closedAt: "2025-07-10T17:00:00",

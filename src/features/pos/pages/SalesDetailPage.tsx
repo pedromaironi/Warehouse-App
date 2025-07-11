@@ -1,24 +1,36 @@
 import { FaArrowLeft, FaBan, FaShareAlt, FaPrint } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MOCK_SALES } from "../data/mockSales";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { InvoicePrintData } from "../types/invoicePrint";
 import { usePrintTicket } from "../hooks/usePrintTicket";
 
 /**
  * SaleDetailPage
- * Displays modern SaaS-style invoice details with PDF download,
- * cancel, share, and print actions. All CTA buttons are
- * interactive (cursor-pointer, hover, color).
+ * Shows detailed invoice information, actions (cancel, share, print).
+ * Fetches the invoice based on the ID in the URL params.
+ * All user actions are interactive (cursor, hover, color).
+ * All visible UI content is in Spanish for Dominican users.
  */
 export default function SaleDetailPage() {
   const navigate = useNavigate();
-  // For demo, using the first MOCK_SALES item
-  const [sale, setSale] = useState(MOCK_SALES[0]); // Replace as needed
+  const { id } = useParams<{ id: string }>();
   const printTicket = usePrintTicket();
-  
-  // Example handlers for CTAs
+
+  // State for the current sale. Initially, find by ID; fallback to first item.
+  const [sale, setSale] = useState(() => {
+    return MOCK_SALES.find((s) => s.id === id) || MOCK_SALES[0];
+  });
+
+  // Update state if route param changes (e.g., when navigating between sales)
+  useEffect(() => {
+    const found = MOCK_SALES.find((s) => s.id === id) || MOCK_SALES[0];
+    setSale(found);
+  }, [id]);
+
+  // Handlers for action buttons
   const handleBack = () => navigate(-1);
+
   const handleCancel = () => {
     if (sale.status === "anulada") {
       alert("Esta factura ya está anulada.");
@@ -27,12 +39,14 @@ export default function SaleDetailPage() {
     setSale({ ...sale, status: "anulada" });
     alert("Factura anulada (demo)");
   };
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     alert("Enlace copiado al portapapeles (demo)");
   };
+
   const handlePrint = () => {
-    // --- Map your sale data to InvoicePrintData type ---
+    // Maps sale data to the required print ticket structure
     const invoicePrintData: InvoicePrintData = {
       business: {
         name: sale.shop,
@@ -45,7 +59,7 @@ export default function SaleDetailPage() {
       date: new Date(sale.date).toLocaleString("es-DO"),
       paymentType: sale.paymentType,
       branch: sale.shop,
-      dueDate: "-", // Add real data if available
+      dueDate: "-",
       customer: sale.customer,
       products: sale.products.map((p) => ({
         name: p.name,
@@ -64,7 +78,7 @@ export default function SaleDetailPage() {
     printTicket(invoicePrintData);
   };
 
-  // Badge by status
+  // Visual helpers for status badges (all statuses in Spanish)
   const statusColors = {
     pagada: "bg-green-100 text-green-700",
     anulada: "bg-red-100 text-red-700",
@@ -123,8 +137,7 @@ export default function SaleDetailPage() {
         </div>
         {/* Disclaimer */}
         <div className="text-gray-500 mb-4 text-sm">
-          Esto es válido como factura y debe usarse solo como referencia. Puede
-          encontrarlo en el botón Imprimir.
+          Esto es una factura de demostración solo para referencia. Para una copia oficial, use el botón Imprimir.
         </div>
 
         <div className="flex flex-col gap-4 md:flex-row">
@@ -138,7 +151,7 @@ export default function SaleDetailPage() {
               >
                 ● {statusText[sale.status as keyof typeof statusText]}
               </span>
-              {/* Arrow back only on desktop */}
+              {/* Back arrow (desktop only) */}
               <button
                 className="ml-auto text-gray-600 hover:text-emerald-700 text-base font-medium cursor-pointer flex items-center gap-2"
                 onClick={handleBack}
@@ -153,7 +166,15 @@ export default function SaleDetailPage() {
               <InfoRow label="Número de pedido" value="BE13199773" />
               <InfoRow label="Vendido por" value={sale.shop} />
               <InfoRow label="Número de factura" value={sale.invoiceNumber} />
-              <InfoRow label="Fecha de emisión" value="Mié, 9 de jul de 2025" />
+              {/* Use the real invoice date, format DD/MM/YYYY */}
+              <InfoRow
+                label="Fecha de emisión"
+                value={new Date(sale.date).toLocaleDateString("es-DO", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              />
               <InfoRow label="Fecha de vencimiento" value="-" />
               <InfoRow
                 label="Total"
@@ -169,7 +190,7 @@ export default function SaleDetailPage() {
             </div>
           </div>
 
-          {/* Payment summary (side) */}
+          {/* Payment summary */}
           <div className="bg-white rounded-2xl shadow p-6 w-full md:w-96 mt-2 md:mt-0">
             <div className="font-bold mb-3">Resumen de pagos</div>
             <div className="flex justify-between mb-2 text-sm">
@@ -283,7 +304,8 @@ export default function SaleDetailPage() {
 
 /**
  * InfoRow
- * Small utility component for displaying invoice meta information.
+ * Displays a label and value in the invoice details grid.
+ * Visible label/content is always in Spanish for end-users.
  */
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
