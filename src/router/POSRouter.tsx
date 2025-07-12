@@ -6,6 +6,7 @@ import GeneralSettingsPage from "../features/settings/pages/GeneralSettingsPage"
 import ShiftHistoryPage from "../features/pos/pages/ShiftHistoryPage";
 import ShiftDetailPage from "../features/pos/pages/ShiftDetailPage";
 import ShiftReportPage from "../features/pos/pages/ShiftReportPage";
+import CashManagementPage from "../features/pos/pages/CashManagementPage";
 
 export const POSRouter = () => {
   return (
@@ -22,6 +23,8 @@ export const POSRouter = () => {
       <Route path="shift-history/:id" element={<ShiftDetailPage />} />
       <Route path="shift-reports" element={<ShiftReportPage />} />
 
+      {/* Cash Movement */}
+      <Route path="cash-management" element={<CashManagementPage />} />
       <Route path="settings" element={<GeneralSettingsPage />} />
 
       {/* Catch-all (optional for handling 404s) */}
